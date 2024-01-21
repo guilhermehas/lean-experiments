@@ -24,7 +24,7 @@ def findFirstEqual (i : Fin n) (ops : List (Fin n × α)) : Option α :=
 def getFromList (i : Fin n) (ops : List (Fin n × α)) (xs : Vector α n) : α :=
   (findFirstEqual i ops).getD (xs.get i)
 
-lemma sameFromEmptyList (value : Fin n × α) (xs : Vector α n) (i : Fin n) :
+lemma sameFromEmptyList (xs : Vector α n) (i : Fin n) :
   xs.getFromList i [] = (xs.setFromList []).get i  := rfl
 
 lemma sameFromConsList (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
@@ -38,14 +38,34 @@ lemma diffFromConsList (value : α) (ops : List (Fin n × α)) (xs : Vector α n
   unfold getFromList findFirstEqual
   simp [*]
 
+lemma updateIf (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) :
+  (xs [ i ]≔ value).get j = if i = j then value else xs.get j := by
+  by_cases i = j
+  . simp[*]
+  . simp [*]
+    rw [get_set_of_ne]
+    . simp [*]
+
+
+lemma vecSetIsSame (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) (jqnI : j ≠ i) :
+  ((xs.setFromList ops) [ i ]≔ value).get j = (xs.setFromList ops).get j := by
+  rw [updateIf]
+  . simp [*]
+    intro h
+    have h2 : i ≠ i := by
+      intro
+      apply jqnI
+      rw [h]
+    contradiction
+  . exact ops
+
+lemma diffFromConsList3 (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
+  xs.setFromList (⟨ i , value ⟩ :: ops) = ((xs.setFromList ops) [ i ]≔ value) := rfl
+
+
 lemma diffFromConsList2 (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) (jqnI : j ≠ i) :
   (xs.setFromList (⟨ i , value ⟩ :: ops)).get j = (xs.setFromList ops).get j := by
-
-  unfold setFromList
-  simp [*]
-
-
-  sorry
+  rw [diffFromConsList3 value ops xs i, vecSetIsSame value ops xs i j jqnI]
 
 
 theorem sameFromGetList (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
