@@ -11,11 +11,15 @@ def swap : Vector α n → Fin n → Fin n → Vector α n
   | xs, i, j => (xs [ i ]≔ get xs j) [ j ]≔ get xs i
 
 def setFromList : List (Fin n × α) → Vector α n → Vector α n
-  | List.nil, xs => xs
-  | List.cons ⟨i , val⟩ ls, xs => setFromList ls (xs [ i ]≔ val)
+  | LUps => LUps.foldl (fun vec (i, val) => vec [ i ]≔ val)
+
+theorem setFromListCompose (xs : Vector α n) (l1 l2 : List (Fin n × α)) :
+  setFromList l2 (setFromList l1 xs) = setFromList (l1 ++ l2) xs := by
+    unfold setFromList
+    rw [List.foldl_append]
 
 def vecFromIndex (xs : Vector α n) (i j : Fin n) : Vector (Fin n × α) 2 :=
-  cons ⟨i , get xs j⟩ (cons ⟨j, get xs i⟩ nil)
+  ⟨i , get xs j⟩ ::ᵥ ⟨j, get xs i⟩ ::ᵥ nil
 
 def listFromIndex (xs : Vector α n) (i j : Fin n) : List (Fin n × α) :=
   (vecFromIndex xs i j).1
@@ -35,4 +39,5 @@ theorem swapInvolute (i j : Fin n) :
   apply ext
   intro k
   rw [←swapAfterSame xs i j, ←swapAfterSame (setFromList (listFromIndex xs i j) xs) i j]
+  rw [setFromListCompose]
   sorry
