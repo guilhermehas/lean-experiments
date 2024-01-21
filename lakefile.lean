@@ -4,7 +4,7 @@ open Lake DSL
 package empty where
   -- add package configuration options here
 
-lean_lib Emptyy where
+lean_lib Vec where
   -- add library configuration options here
 
 require mathlib from git
