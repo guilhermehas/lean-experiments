@@ -24,22 +24,42 @@ def findFirstEqual (i : Fin n) (ops : List (Fin n × α)) : Option α :=
 def getFromList (i : Fin n) (ops : List (Fin n × α)) (xs : Vector α n) : α :=
   (findFirstEqual i ops).getD (xs.get i)
 
+lemma sameFromEmptyList (value : Fin n × α) (xs : Vector α n) (i : Fin n) :
+  xs.getFromList i [] = (xs.setFromList []).get i  := rfl
+
+lemma sameFromConsList (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
+  xs.getFromList i (⟨ i , value ⟩ :: ops) = value := by
+  unfold getFromList findFirstEqual
+  simp [*]
+
+lemma diffFromConsList (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) (jqnI : j ≠ i) :
+  xs.getFromList j (⟨ i , value ⟩ :: ops) = xs.getFromList j ops := by
+
+  unfold getFromList findFirstEqual
+  simp [*]
+
+lemma diffFromConsList2 (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) (jqnI : j ≠ i) :
+  (xs.setFromList (⟨ i , value ⟩ :: ops)).get j = (xs.setFromList ops).get j := by
+
+  unfold setFromList
+  simp [*]
+
+
+  sorry
+
+
 theorem sameFromGetList (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
   (xs.setFromList ops).get i = xs.getFromList i ops := match ops with
   | [] => rfl
   | ⟨ j , val ⟩ :: ops => by
-    by_cases j = i
+    by_cases i = j
     . unfold getFromList findFirstEqual setFromList
       simp [*]
-    . unfold getFromList findFirstEqual setFromList
-      simp [*]
-      induction n
-      . sorry
-      . have ih : xs.get i = (fun x : Fin n × α => x.2) ⟨ sorry , xs.get i⟩ := rfl
-        rw [ih, Option.getD_map]
-        simp [*]
-
-        sorry
+    . rw [diffFromConsList, diffFromConsList2]
+      have p := sameFromGetList ops xs i
+      rw [p]
+      . simp [*]
+      . simp [*]
 
 
 def vecFromIndex (xs : Vector α n) (i j : Fin n) : Vector (Fin n × α) 2 :=
