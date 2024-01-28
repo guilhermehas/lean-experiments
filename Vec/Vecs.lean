@@ -1,5 +1,4 @@
 import Mathlib.Data.Vector.Basic
-import Mathlib.Logic.Function.Basic
 
 variable {m n : ℕ}
 
