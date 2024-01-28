@@ -1,9 +1,16 @@
 import Std
-import Vec.Vecs
+import Mathlib.Data.Vector.Basic
 
 def Any (P : α → Prop) (l : List α) := ∃ x ∈ l, P x
 
 namespace Vector
 
-def getFromListAny (i : Fin n) (ops : List (Fin n × α)) (xs : Vector α n) : α :=
-  (findFirstEqual i ops).getD (xs.get i)
+def sameFirst (i : Fin n) : (Fin n × α) → Prop := fun ⟨ x , _⟩ => i = x
+
+def getFromListAny (i : Fin n) (ops : List (Fin n × α)) (any : Any (sameFirst i) ops) (xs : Vector α n) : α :=
+  match ops with
+  | [] => by
+    exfalso
+    match any with
+    | ⟨_, _, _⟩ => contradiction
+  | x :: xs => sorry
