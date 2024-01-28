@@ -7,9 +7,6 @@ namespace Vector
 
 notation:10 xs " [ " i " ]≔ " val  => set xs i val
 
-def swap : Vector α n → Fin n → Fin n → Vector α n
-  | xs, i, j => (xs [ i ]≔ xs.get j) [ j ]≔ xs.get i
-
 def setFromList : List (Fin n × α) → Vector α n → Vector α n
   | LUps => LUps.foldr (fun (i, val) vec => vec [ i ]≔ val)
 
@@ -38,7 +35,7 @@ lemma diffFromConsList (value : α) (ops : List (Fin n × α)) (xs : Vector α n
   unfold getFromList findFirstEqual
   simp [*]
 
-lemma updateIf (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) :
+lemma updateIf (value : α) (xs : Vector α n) (i j : Fin n) :
   (xs [ i ]≔ value).get j = if i = j then value else xs.get j := by
   by_cases i = j
   . simp[*]
@@ -50,14 +47,10 @@ lemma updateIf (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j :
 lemma vecSetIsSame (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i j : Fin n) (jqnI : j ≠ i) :
   ((xs.setFromList ops) [ i ]≔ value).get j = (xs.setFromList ops).get j := by
   rw [updateIf]
-  . simp [*]
-    intro h
-    have h2 : i ≠ i := by
-      intro
-      apply jqnI
-      rw [h]
-    contradiction
-  . exact ops
+  simp [*]
+  intro h
+  rw [h] at jqnI
+  contradiction
 
 lemma diffFromConsList3 (value : α) (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n) :
   xs.setFromList (⟨ i , value ⟩ :: ops) = ((xs.setFromList ops) [ i ]≔ value) := rfl
@@ -82,11 +75,29 @@ theorem sameFromGetList (ops : List (Fin n × α)) (xs : Vector α n) (i : Fin n
       . simp [*]
 
 
+-- Simple example
+
+lemma sameModify (xs : Vector α n) (i j : Fin n) :
+  setFromList (⟨j, xs.get i⟩ :: []) xs = (xs [ j ]≔ xs.get i) := rfl
+
+theorem modifyOne (i j : Fin n) (xs : Vector α n) : (xs [ j ]≔ xs.get i).get i = xs.get i := by
+  rw [← sameModify, sameFromGetList]
+  match decEq i j with
+  | isTrue ij =>
+    induction ij
+    sorry
+  | isFalse ij => sorry
+
+-- Swapping vector
+
 def vecFromIndex (xs : Vector α n) (i j : Fin n) : Vector (Fin n × α) 2 :=
   ⟨j , get xs i⟩ ::ᵥ ⟨i, get xs j⟩ ::ᵥ nil
 
 def listFromIndex (xs : Vector α n) (i j : Fin n) : List (Fin n × α) :=
   (vecFromIndex xs i j).1
+
+def swap : Vector α n → Fin n → Fin n → Vector α n
+  | xs, i, j => (xs [ i ]≔ xs.get j) [ j ]≔ xs.get i
 
 theorem swapSameSet (xs : Vector α n) (i j : Fin n) :
   setFromList (listFromIndex xs i j) xs = swap xs i j := rfl
@@ -102,6 +113,11 @@ theorem swapInvolute (i j : Fin n) :
   intros xs
   apply ext
   intro k
-  rw [←swapAfterSame xs i j, ←swapAfterSame (setFromList (listFromIndex xs i j) xs) i j]
-  rw [setFromListCompose]
-  sorry
+  rw [←swapAfterSame xs i j, ←swapAfterSame (setFromList (listFromIndex xs i j) xs) i j
+    , setFromListCompose, sameFromGetList]
+
+  cases decEq j k with
+  | isTrue rfl =>
+    induction rfl
+    sorry
+  | isFalse ik => sorry
